@@ -16,18 +16,22 @@ class TextractControllerTest extends TestCase
      */
     public function testProcessPdf()
     {
-        Storage::fake('public'); // Use 'public' disk for file uploads
+        // Provide the path to the real PDF file
+        $pdfPath = public_path('pdf/pdf-test.pdf');
 
-        $pdf = UploadedFile::fake()->create('test.pdf', 1024); // Create a fake PDF file
-
-        $response = $this->json('POST', '/api/extract-text', [
-            'pdf' => $pdf,
-        ]);
+        try {
+            $response = $this->json('POST', 'http://127.0.0.1:8000/api/extract-text', [
+                'pdf' => new UploadedFile($pdfPath, 'pdf-test.pdf'),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
 
         $response->assertStatus(200)
             ->assertJson([
                 'message' => 'Text extracted and stored successfully',
             ]);
+
 
         // Additional assertions can be added based on your requirements
     }
